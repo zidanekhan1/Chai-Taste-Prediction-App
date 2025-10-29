@@ -4,16 +4,10 @@ import numpy as np
 import joblib
 from tensorflow.keras.models import load_model
 
-# -------------------------------
-# 1️⃣ Page Setup
-# -------------------------------
 st.set_page_config(page_title="Chai Taste Predictor", layout="centered")
 st.title("☕ Chai Taste Predictor using ANN")
 st.write("Predict whether a cup of chai will taste **Good** or **Not Good** based on its ingredients.")
 
-# -------------------------------
-# 2️⃣ Load Model and Tools
-# -------------------------------
 @st.cache_resource
 def load_all():
     model = load_model("chai_model.h5")
@@ -28,9 +22,6 @@ except Exception as e:
     st.error(f"❌ Could not load model/scaler/encoders. Error: {e}")
     st.stop()
 
-# -------------------------------
-# 3️⃣ Input Section
-# -------------------------------
 st.header("Enter Your Chai Details 🍵")
 
 col1, col2 = st.columns(2)
@@ -47,16 +38,13 @@ with col2:
 
 st.markdown("---")
 
-# -------------------------------
-# 4️⃣ Prediction
-# -------------------------------
 if st.button("Predict Taste"):
-    # Build single sample as DataFrame
+    
     input_df = pd.DataFrame([[
         sugar_level, masala_level, masala_type, base_type, base_quantity_ml, brew_time_min
     ]], columns=["sugar_level", "masala_level", "masala_type", "base_type", "base_quantity_ml", "brew_time_min"])
 
-    # Encode categorical columns using loaded encoders
+    
     for col in ["masala_type", "base_type"]:
         le = encoders[col]
         try:
@@ -65,10 +53,10 @@ if st.button("Predict Taste"):
             st.error(f"The selected value '{input_df[col].iloc[0]}' for '{col}' was not seen during training.")
             st.stop()
 
-    # Scale numeric data
+    
     scaled_sample = scaler.transform(input_df)
 
-    # Predict
+    
     prediction = model.predict(scaled_sample)[0][0]
     label = "Good ☕" if prediction >= 0.5 else "Not Good 😕"
 
@@ -76,7 +64,6 @@ if st.button("Predict Taste"):
     st.metric("Predicted Taste", label)
     st.write(f"Confidence: {prediction*100:.2f}%")
 
-    # Friendly interpretation
     if prediction >= 0.8:
         st.success("This chai looks delicious — high confidence it's GOOD! 🍵")
     elif prediction >= 0.5:
@@ -85,4 +72,5 @@ if st.button("Predict Taste"):
         st.warning("Hmm... might need better balance in ingredients 😕")
 
 st.markdown("---")
+
 st.caption("Trained ANN Model • Files: chai_model.h5 | scaler.pkl | encoders.pkl")
